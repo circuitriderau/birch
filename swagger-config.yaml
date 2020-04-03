@@ -1,0 +1,2323 @@
+openapi: 3.0.0
+info:
+  description: |
+    This is an API for interacting with a Birch Application
+
+    API Prefix for all calls is: **/api**
+  version: "1.1.1"
+  title: Birch API
+tags:
+  - name: registrations
+    description: Interact with Registrations
+  - name: user
+    description: Interact with Birch Users
+  - name: connections
+    description: Interactions
+paths:
+  /registrations/element/{externalId}:
+    get:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The element external ID
+      tags:
+        - registrations
+      summary: Retrieve a list of Registrations for an Element
+      operationId: getRegistrationsForComponent
+      responses:
+        '200':
+          description: List of Registrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Registration'
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Element not found for External Id supplied.
+  /registrations/user/{externalIdOrUsername}:
+    get:
+      parameters:
+        - in: path
+          name: externalIdOrUsername
+          required: true
+          schema:
+            type: string
+          description: The user's external ID or Username
+      tags:
+        - registrations
+      summary: Retrieve a list of Registrations for a User
+      operationId: getRegistrationsForUser
+      responses:
+        '200':
+          description: List of Registrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Registration'
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Element not found for External Id supplied.
+  /registrations/update:
+    post:
+      tags:
+        - registrations
+      summary: Update an existing registration record with new data, this will default to updating the most recent registrationl unless a completion date is sent, and if so it will match based on completion date.
+      operationId: updateRegistration
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Either User or Element not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/RegistrationSingle'
+  /registrations/new:
+    post:
+      tags:
+        - registrations
+      summary: Create a new registration record for a User into an Element, as long as there is no existing record that occurs in the same time frame (start - end)
+      operationId: createRegistration
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Either User or Element not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/RegistrationSingle'
+  /registrations/newgoal:
+    post:
+      tags:
+        - registrations
+      summary: Create a new registration record for a User into a Goal
+      operationId: registerGoal
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Either User or Goal not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/GoalRegistrationSingle'
+  /registrations/delete:
+    delete:
+      tags:
+        - registrations
+      summary: Deletes a Registration for a User. To delete the most recent, omit the dateCompleted field, otherwise set the dateCompleted to match the desired record.
+      operationId: deleteRegistration
+      responses:
+        '200':
+          description: Operation Completed, response message will contain a JSON of the registration that was deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Either User or Element not found for External Id supplied, or No record found for the Date Completed specified.
+      requestBody:
+        $ref: '#/components/requestBodies/RegistrationDeleteSingle'
+  /registrations/cancelGoal:
+    delete:
+      tags:
+        - registrations
+      summary: Deletes a Registration for a User. To delete the most recent, omit the dateCompleted field.
+      operationId: cancelRegistration
+      responses:
+        '200':
+          description: Operation Completed, response message will contain a JSON of the registration that was deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Either User or Element not found for External Id supplied, or No record found for the Date Completed specified.
+      requestBody:
+        $ref: '#/components/requestBodies/RegistrationCancelSingle'
+  /registrations/scormlaunchurl/{employeeId}/{externalId}:
+    get:
+      parameters:
+        - in: path
+          name: employeeId
+          required: true
+          schema:
+            type: string
+          description: External Id of the Employee
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The element external ID
+      tags:
+        - registrations
+      summary: Retrieve the Scorm Launch URL from a registered element, or register the user into the element and return Scorm Launch Url
+      operationId: getScormLaunchUrl
+      responses:
+        '200':
+          description: Scorm Launch Url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScormLaunchUrlResult'
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Either User or Element not found for parameters supplied
+  /user/{externalId}:
+    get:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The User external ID
+      tags:
+        - user
+      summary: Select a Birch User
+      operationId: getUser
+      responses:
+        '200':
+          description: User Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+  /user/new:
+    post:
+      tags:
+        - user
+      summary: Creates a new Birch User
+      operationId: createUser
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+      requestBody:
+        $ref: '#/components/requestBodies/UserSingle'
+  /user/{externalId}/firstname:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Firstname field
+      operationId: updateFirstName
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewName'
+  /user/{externalId}/lastname:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Lastname field
+      operationId: updateLastName
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewName'
+  /user/{externalId}/email:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Email Address field
+      operationId: updateEmail
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewEmail'
+  /user/{externalId}/password:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Password field
+      operationId: updatePassword
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewPassword'
+  /user/{externalId}/status:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Status field
+      operationId: updateStatus
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewStatus'
+  /user/{externalId}/startdate:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Start Date field
+      operationId: updateStartDate
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewDate'
+  /user/{externalId}/enddate:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's End Date field
+      operationId: updateEndDate
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewDate'
+  /user/{externalId}/jobpositions:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Job Positions
+      operationId: updateJobPositions
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewJobPositions'
+  /user/[externalId]/timezone:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Timezone field
+      operationId: updateTimezone
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewTimezone'
+  /user/[externalId}/language:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Language
+      operationId: updateLanguage
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewLanguage'
+  /user/[externalId]/birthdate:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Birth Date field
+      operationId: updateBirthDate
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewDate'
+  /user/{externalId}/role:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Role
+      operationId: updateRole
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewRole'
+  /user/{externalId}/community:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Updates a User's Community
+      operationId: updateCommunity
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewCommunity'
+  /user/{externalId}/managers:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+      tags:
+        - user
+      summary: Overwrite a User's managers with the managers sent in this request. If no array of external Ids is sent then the system will remove all managers.
+      operationId: updateManagers
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewManagers'
+  /user/assignManagers:
+    put:
+      tags:
+        - user
+      summary: Overwrite a list of User's managers with the managers sent in this request. If no array of external Ids is sent then the system will remove all managers.
+      operationId: assignManagers
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewManagerExternalIds'
+  /user/{externalId}/add/connection/{parentExternalId}:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+        - in: path
+          name: connectionExternalId
+          required: true
+          schema:
+            type: string
+          description: The connection external ID to Add
+      tags:
+        - user
+      summary: Add Connection Values for a specific connection on a User
+      operationId: addConnections
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewConnections'
+  /user/{externalId}/remove/connection/{parentExternalId}:
+    delete:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+        - in: path
+          name: connectionExternalId
+          required: true
+          schema:
+            type: string
+          description: The connection external ID that *contains* the value to remove.
+      tags:
+        - user
+      summary: Add a Connection to a User
+      operationId: addConnection
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User or Connection not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/DeleteConnection'
+  /user/{externalId}/add/freetext/{parentExternalId}:
+    put:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The user external ID
+        - in: path
+          name: connectionExternalId
+          required: true
+          schema:
+            type: string
+          description: The connection external ID to Add
+      tags:
+        - user
+      summary: Add Connection Values for a specific connection on a User
+      operationId: addFreeTextConnection
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: User not found for External Id supplied.
+      requestBody:
+        $ref: '#/components/requestBodies/NewValues'
+  /associations/all:
+    get:
+      tags:
+        - connections
+      summary: List all Connections
+      operationId: getAssociationList
+      responses:
+        '200':
+          description: List of Connections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Connection'
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: No Connections found
+  /associations/new:
+    post:
+      tags:
+        - connections
+      summary: Create a new connection record
+      operationId: createAssociation
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+      requestBody:
+        $ref: '#components/requestBodies/ConnectionSingle'
+  /associations/update:
+    post:
+      tags:
+        - connections
+      summary: Update an existing connection record with new data
+      operationId: updateAssociation
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Connection not found for External Id supplied
+      requestBody:
+        $ref: '#/components/requestBodies/ConnectionSingle'
+  /associations/delete/{externalId}:
+    delete:
+      parameters:
+        - in: path
+          name: externalId
+          required: true
+          schema:
+            type: string
+          description: The Connection external ID
+      tags:
+        - connections
+      summary: Deletes a Connection.
+      operationId: deleteAssociation
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+        '404':
+          description: Connection not found for External Id supplied
+  /components/instances/import:
+    post:
+      tags:
+        - components
+      summary: Import a file containing Event Instances
+      operationId: ImportInstances
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid File
+        '403':
+          description: Not Authenticated for Access to API
+      requestBody:
+        $ref: '#components/requestBodies/InstanceImport'
+  /components/instances/new:
+    post:
+      tags:
+        - components
+      summary: Create a new Event Instance
+      operationId: NewInstance
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+      requestBody:
+        $ref: '#components/requestBodies/InstanceSingle'
+  /components/occurrences/import:
+    post:
+      tags:
+        - components
+      summary: Import a file containing Event Instance Occurrences
+      operationId: ImportOccurrences
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid File
+        '403':
+          description: Not Authenticated for Access to API
+      requestBody:
+        $ref: '#components/requestBodies/OccurrenceImport'
+  /components/occurrences/new:
+    post:
+      tags:
+        - components
+      summary: Create a containing Event Instance Occurrences
+      operationId: NewOccurrence
+      responses:
+        '200':
+          description: Operation Completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiOperationResult'
+        '400':
+          description: Invalid JSON Object
+        '403':
+          description: Not Authenticated for Access to API
+      requestBody:
+        $ref: '#components/requestBodies/OccurrenceSingle'
+components:
+  schemas:
+    RegistrationDelete:
+      type: object
+      properties:
+        userExternalIdOrUserName:
+          type: string
+          example: userExternalID
+        elementExternalId:
+          type: string
+          example: ElementExternalID
+        goalExternalId:
+          type: string
+          example: GoalExternalID
+        dateCompleted:
+          type: string
+          format: date
+      required:
+        - userExternalIdOrUserName
+    RegistrationCancel:
+      type: object
+      properties:
+        userExternalIdOrUserName:
+          type: string
+          example: userExternalID
+        goalExternalId:
+          type: string
+          example: GoalExternalID
+      required:
+        - userExternalIdOrUserName
+    Registration:
+      type: object
+      properties:
+        userExternalIdOrUserName:
+          type: string
+          example: userExternalID
+        elementExternalId:
+          type: string
+          example: elementExternalId
+        instanceName:
+          type: string
+          example: instance Name
+        completionStatus:
+          type: string
+          enum: ["passed", "failed", "none"]
+        score:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          example: 87
+      required:
+        - userExternalIdOrUsername
+        - elementExternalId
+      xml:
+        name: Registration
+    GoalRegistration:
+      type: object
+      properties:
+        userExternalIdOrUserName:
+          type: string
+          example: userExternalID
+        goalExternalId:
+          type: string
+          example: goalExternalId
+        completionStatus:
+          type: string
+          enum: ["none"]
+        forceRenew:
+          type: boolean
+          example: false
+      required:
+        - userExternalIdOrUsername
+        - goalExternalId
+      xml:
+        name: GoalRegistration
+    Connection:
+      type: object
+      properties:
+        parentExternalId:
+          type: string
+          example: parentConnectionExternalId
+          description: Optional value, omit if this is a child
+        associationName:
+          type: string
+          example: Connection Name
+        inputType:
+          type: string
+          enum: ["single", "multi", "free", "tag", "option"]
+        externalId:
+          type: string
+          example: connectionExternalId
+        appliesTo:
+          type: string
+          enum: ["user", "all"]
+          description: Connections apply to user, Tags apply to all
+      required:
+        - associationName
+        - inputType
+        - externalId
+        - appliesTo
+      xml:
+        name: Connection
+    User:
+      type: object
+      properties:
+        externalId:
+          type: string
+          example: userExternalID
+        username:
+          type: string
+          example: bobJones
+        email:
+          type: string
+          format: email
+          example: bobJones@someplace.com
+        password:
+          type: string
+          example: AVeryStrongPasswordThanks
+        firstname:
+          type: string
+          example: Bob
+        lastname:
+          type: string
+          example: Jones
+        status:
+          type: string
+          enum: [active, inactive, pending_activation]
+        timezoneId:
+          type: string
+          example: Australia/Sydney
+        languageId:
+          type: string
+          example: en
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        birthDate:
+          type: string
+          format: date
+        associationExternalIds:
+          type: array
+          items:
+            type: string
+            example: connectionValueExternalID
+        freeTextAssociations:
+          type: array
+          items:
+            type: array
+            minitems: 2
+            maxitems: 2
+            items:
+              type: string
+              example: [connectionExternalId, connectionTextValue]
+        roleName:
+          type: string
+          enum: [system admin, learner, trainer]
+          example: learner
+        managerExternalIds:
+          type: array
+          items:
+            type: string
+            example: managerUserExternalID
+        jobPositionExternalIds:
+          type: array
+          items:
+            type: string
+            example: JobPositionExternalID
+        communityExternalId:
+          type: string
+          example: CommunityExternalID
+      required:
+        - externalId
+        - username
+        - email
+        - password
+        - firstname
+        - lastname
+        - status
+      xml:
+        name: User
+    ApiOperationResult:
+      type: object
+      properties:
+        operationId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [success, failed]
+        responseDetails:
+          type: string
+          format: json
+          example: { "message": "Update Successful" }
+    ScormLaunchUrlResult:
+      type: object
+      properties:
+        operationId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [success, failed]
+        responseDetails:
+          type: string
+          format: json
+          example: { "message": "Update Successful", "launchUrl": "https://scorm.com" }
+    Instance:
+      type: object
+      properties:
+        componentExternalId:
+          type: string
+          example: componentExternalId
+        instanceName:
+          type: string
+          example: Instance One
+        trainerIds:
+          type: string
+          example: "trainerExternalId_1|trainerExternalId_2"
+        cost:
+          type: number
+          format: double
+          example: 8.00
+        lastRegister:
+          type: string
+          example: "2020-10-24"
+        cancelByDate:
+          type: string
+          example: "2020-10-28"
+        cancelByType:
+          type: string
+          enum: [automatically, by_request]
+        waitlistEnable:
+          type: boolean
+          example: false
+        adminApproval:
+          type: boolean
+          example: false
+        managerApproval:
+          type: boolean
+          example: false
+        occupancy_min:
+          type: integer
+          minimum: 1
+          example: 1
+        occupancy_max:
+          type: integer
+          minimum: 1
+          example: 1
+        availability:
+          type: boolean
+        timezoneId:
+          type: string
+          enum:
+            - Etc/GMT+12
+            - Etc/GMT+11
+            - Pacific/Apia
+            - Pacific/Midway
+            - Pacific/Niue
+            - Pacific/Pago_Pago
+            - America/Adak
+            - Etc/GMT+10
+            - HST
+            - Pacific/Fakaofo
+            - Pacific/Honolulu
+            - Pacific/Johnston
+            - Pacific/Rarotonga
+            - Pacific/Tahiti
+            - Pacific/Marquesas
+            - America/Anchorage
+            - America/Juneau
+            - America/Nome
+            - America/Yakutat
+            - Etc/GMT+9
+            - Pacific/Gambier
+            - America/Dawson
+            - America/Los_Angeles
+            - America/Santa_Isabel
+            - America/Tijuana
+            - America/Vancouver
+            - America/Whitehorse
+            - Etc/GMT+8
+            - PST8PDT
+            - Pacific/Pitcairn
+            - America/Boise
+            - America/Cambridge_Bay
+            - America/Chihuahua
+            - America/Dawson_Creek
+            - America/Denver
+            - America/Edmonton
+            - America/Hermosillo
+            - America/Inuvik
+            - America/Mazatlan
+            - America/Ojinaga
+            - America/Phoenix
+            - America/Yellowknife
+            - Etc/GMT+7
+            - MST
+            - MST7MDT
+            - America/Bahia_Banderas
+            - America/Belize
+            - America/Cancun
+            - America/Chicago
+            - America/Costa_Rica
+            - America/El_Salvador
+            - America/Guatemala
+            - America/Indiana/Knox
+            - America/Indiana/Tell_City
+            - America/Managua
+            - America/Matamoros
+            - America/Menominee
+            - America/Merida
+            - America/Mexico_City
+            - America/Monterrey
+            - America/North_Dakota/Center
+            - America/North_Dakota/New_Salem
+            - America/Rainy_River
+            - America/Rankin_Inlet
+            - America/Regina
+            - America/Swift_Current
+            - America/Tegucigalpa
+            - America/Winnipeg
+            - CST6CDT
+            - Etc/GMT+6
+            - Pacific/Easter
+            - Pacific/Galapagos
+            - America/Atikokan
+            - America/Bogota
+            - America/Cayman
+            - America/Detroit
+            - America/Grand_Turk
+            - America/Guayaquil
+            - America/Havana
+            - America/Indiana/Indianapolis
+            - America/Indiana/Marengo
+            - America/Indiana/Petersburg
+            - America/Indiana/Vevay
+            - America/Indiana/Vincennes
+            - America/Indiana/Winamac
+            - America/Iqaluit
+            - America/Jamaica
+            - America/Kentucky/Louisville
+            - America/Kentucky/Monticello
+            - America/Lima
+            - America/Montreal
+            - America/Nassau
+            - America/New_York
+            - America/Nipigon
+            - America/Panama
+            - America/Pangnirtung
+            - America/Port-au-Prince
+            - America/Resolute
+            - America/Thunder_Bay
+            - America/Toronto
+            - EST
+            - EST5EDT
+            - Etc/GMT+5
+            - America/Caracas
+            - America/Anguilla
+            - America/Antigua
+            - America/Argentina/San_Luis
+            - America/Aruba
+            - America/Asuncion
+            - America/Barbados
+            - America/Blanc-Sablon
+            - America/Boa_Vista
+            - America/Campo_Grande
+            - America/Cuiaba
+            - America/Curacao
+            - America/Dominica
+            - America/Eirunepe
+            - America/Glace_Bay
+            - America/Goose_Bay
+            - America/Grenada
+            - America/Guadeloupe
+            - America/Guyana
+            - America/Halifax
+            - America/La_Paz
+            - America/Manaus
+            - America/Martinique
+            - America/Moncton
+            - America/Montserrat
+            - America/Port_of_Spain
+            - America/Porto_Velho
+            - America/Puerto_Rico
+            - America/Rio_Branco
+            - America/Santiago
+            - America/Santo_Domingo
+            - America/St_Kitts
+            - America/St_Lucia
+            - America/St_Thomas
+            - America/St_Vincent
+            - America/Thule
+            - America/Tortola
+            - Antarctica/Palmer
+            - Atlantic/Bermuda
+            - Atlantic/Stanley
+            - Etc/GMT+4
+            - America/St_Johns
+            - America/Araguaina
+            - America/Argentina/Buenos_Aires
+            - America/Argentina/Catamarca
+            - America/Argentina/Cordoba
+            - America/Argentina/Jujuy
+            - America/Argentina/La_Rioja
+            - America/Argentina/Mendoza
+            - America/Argentina/Rio_Gallegos
+            - America/Argentina/Salta
+            - America/Argentina/San_Juan
+            - America/Argentina/Tucuman
+            - America/Argentina/Ushuaia
+            - America/Bahia
+            - America/Belem
+            - America/Cayenne
+            - America/Fortaleza
+            - America/Godthab
+            - America/Maceio
+            - America/Miquelon
+            - America/Montevideo
+            - America/Paramaribo
+            - America/Recife
+            - America/Santarem
+            - America/Sao_Paulo
+            - Antarctica/Rothera
+            - Etc/GMT+3
+            - America/Noronha
+            - Atlantic/South_Georgia
+            - Etc/GMT+2
+            - America/Scoresbysund
+            - Atlantic/Azores
+            - Atlantic/Cape_Verde
+            - Etc/GMT+1
+            - Africa/Abidjan
+            - Africa/Accra
+            - Africa/Bamako
+            - Africa/Banjul
+            - Africa/Bissau
+            - Africa/Casablanca
+            - Africa/Conakry
+            - Africa/Dakar
+            - Africa/El_Aaiun
+            - Africa/Freetown
+            - Africa/Lome
+            - Africa/Monrovia
+            - Africa/Nouakchott
+            - Africa/Ouagadougou
+            - Africa/Sao_Tome
+            - America/Danmarkshavn
+            - Atlantic/Canary
+            - Atlantic/Faroe
+            - Atlantic/Madeira
+            - Atlantic/Reykjavik
+            - Atlantic/St_Helena
+            - Etc/GMT
+            - Etc/UCT
+            - Etc/UTC
+            - Europe/Dublin
+            - Europe/Lisbon
+            - Europe/London
+            - UTC
+            - WET
+            - Africa/Algiers
+            - Africa/Bangui
+            - Africa/Brazzaville
+            - Africa/Ceuta
+            - Africa/Douala
+            - Africa/Kinshasa
+            - Africa/Lagos
+            - Africa/Libreville
+            - Africa/Luanda
+            - Africa/Malabo
+            - Africa/Ndjamena
+            - Africa/Niamey
+            - Africa/Porto-Novo
+            - Africa/Tunis
+            - Africa/Windhoek
+            - CET
+            - Etc/GMT-1
+            - Europe/Amsterdam
+            - Europe/Andorra
+            - Europe/Belgrade
+            - Europe/Berlin
+            - Europe/Brussels
+            - Europe/Budapest
+            - Europe/Copenhagen
+            - Europe/Gibraltar
+            - Europe/Luxembourg
+            - Europe/Madrid
+            - Europe/Malta
+            - Europe/Monaco
+            - Europe/Oslo
+            - Europe/Paris
+            - Europe/Prague
+            - Europe/Rome
+            - Europe/Stockholm
+            - Europe/Tirane
+            - Europe/Vaduz
+            - Europe/Vienna
+            - Europe/Warsaw
+            - Europe/Zurich
+            - MET
+            - Africa/Blantyre
+            - Africa/Bujumbura
+            - Africa/Cairo
+            - Africa/Gaborone
+            - Africa/Harare
+            - Africa/Johannesburg
+            - Africa/Kigali
+            - Africa/Lubumbashi
+            - Africa/Lusaka
+            - Africa/Maputo
+            - Africa/Maseru
+            - Africa/Mbabane
+            - Africa/Tripoli
+            - Asia/Amman
+            - Asia/Beirut
+            - Asia/Damascus
+            - Asia/Gaza
+            - Asia/Jerusalem
+            - Asia/Nicosia
+            - EET
+            - Etc/GMT-2
+            - Europe/Athens
+            - Europe/Bucharest
+            - Europe/Chisinau
+            - Europe/Helsinki
+            - Europe/Istanbul
+            - Europe/Kaliningrad
+            - Europe/Kiev
+            - Europe/Minsk
+            - Europe/Riga
+            - Europe/Simferopol
+            - Europe/Sofia
+            - Europe/Tallinn
+            - Europe/Uzhgorod
+            - Europe/Vilnius
+            - Europe/Zaporozhye
+            - Africa/Addis_Ababa
+            - Africa/Asmara
+            - Africa/Dar_es_Salaam
+            - Africa/Djibouti
+            - Africa/Kampala
+            - Africa/Khartoum
+            - Africa/Mogadishu
+            - Africa/Nairobi
+            - Antarctica/Syowa
+            - Asia/Aden
+            - Asia/Baghdad
+            - Asia/Bahrain
+            - Asia/Kuwait
+            - Asia/Qatar
+            - Asia/Riyadh
+            - Etc/GMT-3
+            - Europe/Moscow
+            - Europe/Samara
+            - Europe/Volgograd
+            - Indian/Antananarivo
+            - Indian/Comoro
+            - Indian/Mayotte
+            - Asia/Tehran
+            - Asia/Baku
+            - Asia/Dubai
+            - Asia/Muscat
+            - Asia/Tbilisi
+            - Asia/Yerevan
+            - Etc/GMT-4
+            - Indian/Mahe
+            - Indian/Mauritius
+            - Indian/Reunion
+            - Asia/Kabul
+            - Antarctica/Mawson
+            - Asia/Aqtau
+            - Asia/Aqtobe
+            - Asia/Ashgabat
+            - Asia/Dushanbe
+            - Asia/Karachi
+            - Asia/Oral
+            - Asia/Samarkand
+            - Asia/Tashkent
+            - Asia/Yekaterinburg
+            - Etc/GMT-5
+            - Indian/Kerguelen
+            - Indian/Maldives
+            - Asia/Colombo
+            - Asia/Kolkata
+            - Asia/Kathmandu
+            - Antarctica/Vostok
+            - Asia/Almaty
+            - Asia/Bishkek
+            - Asia/Dhaka
+            - Asia/Novokuznetsk
+            - Asia/Novosibirsk
+            - Asia/Omsk
+            - Asia/Qyzylorda
+            - Asia/Thimphu
+            - Etc/GMT-6
+            - Indian/Chagos
+            - Asia/Rangoon
+            - Indian/Cocos
+            - Antarctica/Davis
+            - Asia/Bangkok
+            - Asia/Ho_Chi_Minh
+            - Asia/Hovd
+            - Asia/Jakarta
+            - Asia/Krasnoyarsk
+            - Asia/Phnom_Penh
+            - Asia/Pontianak
+            - Asia/Vientiane
+            - Etc/GMT-7
+            - Indian/Christmas
+            - Antarctica/Casey
+            - Asia/Brunei
+            - Asia/Choibalsan
+            - Asia/Chongqing
+            - Asia/Harbin
+            - Asia/Hong_Kong
+            - Asia/Irkutsk
+            - Asia/Kashgar
+            - Asia/Kuala_Lumpur
+            - Asia/Kuching
+            - Asia/Macau
+            - Asia/Makassar
+            - Asia/Manila
+            - Asia/Shanghai
+            - Asia/Singapore
+            - Asia/Taipei
+            - Asia/Ulaanbaatar
+            - Asia/Urumqi
+            - Australia/Perth
+            - Etc/GMT-8
+            - Australia/Eucla
+            - Asia/Dili
+            - Asia/Jayapura
+            - Asia/Pyongyang
+            - Asia/Seoul
+            - Asia/Tokyo
+            - Asia/Yakutsk
+            - Etc/GMT-9
+            - Pacific/Palau
+            - Australia/Adelaide
+            - Australia/Broken_Hill
+            - Australia/Darwin
+            - Antarctica/DumontDUrville
+            - Asia/Sakhalin
+            - Asia/Vladivostok
+            - Australia/Brisbane
+            - Australia/Currie
+            - Australia/Hobart
+            - Australia/Lindeman
+            - Australia/Melbourne
+            - Australia/Sydney
+            - Etc/GMT-10
+            - Pacific/Chuuk
+            - Pacific/Guam
+            - Pacific/Port_Moresby
+            - Pacific/Saipan
+            - Australia/Lord_Howe
+            - Antarctica/Macquarie
+            - Asia/Anadyr
+            - Asia/Kamchatka
+            - Asia/Magadan
+            - Etc/GMT-11
+            - Pacific/Efate
+            - Pacific/Guadalcanal
+            - Pacific/Kosrae
+            - Pacific/Noumea
+            - Pacific/Pohnpei
+            - Pacific/Norfolk
+            - Antarctica/McMurdo
+            - Etc/GMT-12
+            - Pacific/Auckland
+            - Pacific/Fiji
+            - Pacific/Funafuti
+            - Pacific/Kwajalein
+            - Pacific/Majuro
+            - Pacific/Nauru
+            - Pacific/Tarawa
+            - Pacific/Wake
+            - Pacific/Wallis
+            - Pacific/Chatham
+            - Etc/GMT-13
+            - Pacific/Enderbury
+            - Pacific/Tongatapu
+            - Etc/GMT-14
+            - Pacific/Kiritimati
+      required:
+        - componentExternalId
+        - instanceName
+        - lastRegister
+        - cancelByDate
+        - timezoneId
+      xml:
+        name: Instance
+    Occurrence:
+      type: object
+      properties:
+        componentExternalId:
+          type: string
+          example: event_one
+        instanceName:
+          type: string
+          example: Instance One
+        location:
+          type: string
+          example: At the Corner Office
+        date:
+          type: string
+          example: "2020-02-13"
+        start:
+          type: string
+          example: "08:30"
+        end:
+          type: string
+          example: "14:00"
+        additional:
+          type: string
+          example: Some additional information that is related to this occurrence
+      required:
+        - componentExternalId
+        - instanceName
+        - location
+        - date
+        - start
+        - end
+      xml:
+        name: Occurrence
+  requestBodies:
+    RegistrationDeleteSingle:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RegistrationDelete'
+      description: A Registration Delete Request Object
+      required: true
+    RegistrationCancelSingle:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationCancel'
+        description: A Registration Cancel Request Object
+        required: true
+    RegistrationSingle:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Registration' 
+      description: A Registration Object
+      required: true
+    GoalRegistrationSingle:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GoalRegistration'
+      description: A Registration Object
+      required: true
+    UserSingle:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+      description: A User Object
+      required: true
+    NewName:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newName:
+                type: string
+      description: Set a new name
+      required: true
+    NewEmail:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newEmail:
+                type: string
+      description: Set a new email
+      required: true
+    NewPassword:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newPassword:
+                type: string
+      description: Set a new password
+      required: true
+    NewStatus:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newStatus:
+                type: string
+                enum: ['active', 'inactive', 'pending_activation']
+      description: Set a new status
+      required: true
+    NewDate:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newDate:
+                type: string
+                format: date-time
+      description: Set a new date
+      required: true
+    NewJobPositions:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              externalIds:
+                type: array
+                items:
+                  type: string
+                  example: JobPositionExternalID
+      description: Set new job positions
+      required: true
+    NewTimezone:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newTimezone:
+                type: string
+                enum:
+                  - Etc/GMT+12
+                  - Etc/GMT+11
+                  - Pacific/Apia
+                  - Pacific/Midway
+                  - Pacific/Niue
+                  - Pacific/Pago_Pago
+                  - America/Adak
+                  - Etc/GMT+10
+                  - HST
+                  - Pacific/Fakaofo
+                  - Pacific/Honolulu
+                  - Pacific/Johnston
+                  - Pacific/Rarotonga
+                  - Pacific/Tahiti
+                  - Pacific/Marquesas
+                  - America/Anchorage
+                  - America/Juneau
+                  - America/Nome
+                  - America/Yakutat
+                  - Etc/GMT+9
+                  - Pacific/Gambier
+                  - America/Dawson
+                  - America/Los_Angeles
+                  - America/Santa_Isabel
+                  - America/Tijuana
+                  - America/Vancouver
+                  - America/Whitehorse
+                  - Etc/GMT+8
+                  - PST8PDT
+                  - Pacific/Pitcairn
+                  - America/Boise
+                  - America/Cambridge_Bay
+                  - America/Chihuahua
+                  - America/Dawson_Creek
+                  - America/Denver
+                  - America/Edmonton
+                  - America/Hermosillo
+                  - America/Inuvik
+                  - America/Mazatlan
+                  - America/Ojinaga
+                  - America/Phoenix
+                  - America/Yellowknife
+                  - Etc/GMT+7
+                  - MST
+                  - MST7MDT
+                  - America/Bahia_Banderas
+                  - America/Belize
+                  - America/Cancun
+                  - America/Chicago
+                  - America/Costa_Rica
+                  - America/El_Salvador
+                  - America/Guatemala
+                  - America/Indiana/Knox
+                  - America/Indiana/Tell_City
+                  - America/Managua
+                  - America/Matamoros
+                  - America/Menominee
+                  - America/Merida
+                  - America/Mexico_City
+                  - America/Monterrey
+                  - America/North_Dakota/Center
+                  - America/North_Dakota/New_Salem
+                  - America/Rainy_River
+                  - America/Rankin_Inlet
+                  - America/Regina
+                  - America/Swift_Current
+                  - America/Tegucigalpa
+                  - America/Winnipeg
+                  - CST6CDT
+                  - Etc/GMT+6
+                  - Pacific/Easter
+                  - Pacific/Galapagos
+                  - America/Atikokan
+                  - America/Bogota
+                  - America/Cayman
+                  - America/Detroit
+                  - America/Grand_Turk
+                  - America/Guayaquil
+                  - America/Havana
+                  - America/Indiana/Indianapolis
+                  - America/Indiana/Marengo
+                  - America/Indiana/Petersburg
+                  - America/Indiana/Vevay
+                  - America/Indiana/Vincennes
+                  - America/Indiana/Winamac
+                  - America/Iqaluit
+                  - America/Jamaica
+                  - America/Kentucky/Louisville
+                  - America/Kentucky/Monticello
+                  - America/Lima
+                  - America/Montreal
+                  - America/Nassau
+                  - America/New_York
+                  - America/Nipigon
+                  - America/Panama
+                  - America/Pangnirtung
+                  - America/Port-au-Prince
+                  - America/Resolute
+                  - America/Thunder_Bay
+                  - America/Toronto
+                  - EST
+                  - EST5EDT
+                  - Etc/GMT+5
+                  - America/Caracas
+                  - America/Anguilla
+                  - America/Antigua
+                  - America/Argentina/San_Luis
+                  - America/Aruba
+                  - America/Asuncion
+                  - America/Barbados
+                  - America/Blanc-Sablon
+                  - America/Boa_Vista
+                  - America/Campo_Grande
+                  - America/Cuiaba
+                  - America/Curacao
+                  - America/Dominica
+                  - America/Eirunepe
+                  - America/Glace_Bay
+                  - America/Goose_Bay
+                  - America/Grenada
+                  - America/Guadeloupe
+                  - America/Guyana
+                  - America/Halifax
+                  - America/La_Paz
+                  - America/Manaus
+                  - America/Martinique
+                  - America/Moncton
+                  - America/Montserrat
+                  - America/Port_of_Spain
+                  - America/Porto_Velho
+                  - America/Puerto_Rico
+                  - America/Rio_Branco
+                  - America/Santiago
+                  - America/Santo_Domingo
+                  - America/St_Kitts
+                  - America/St_Lucia
+                  - America/St_Thomas
+                  - America/St_Vincent
+                  - America/Thule
+                  - America/Tortola
+                  - Antarctica/Palmer
+                  - Atlantic/Bermuda
+                  - Atlantic/Stanley
+                  - Etc/GMT+4
+                  - America/St_Johns
+                  - America/Araguaina
+                  - America/Argentina/Buenos_Aires
+                  - America/Argentina/Catamarca
+                  - America/Argentina/Cordoba
+                  - America/Argentina/Jujuy
+                  - America/Argentina/La_Rioja
+                  - America/Argentina/Mendoza
+                  - America/Argentina/Rio_Gallegos
+                  - America/Argentina/Salta
+                  - America/Argentina/San_Juan
+                  - America/Argentina/Tucuman
+                  - America/Argentina/Ushuaia
+                  - America/Bahia
+                  - America/Belem
+                  - America/Cayenne
+                  - America/Fortaleza
+                  - America/Godthab
+                  - America/Maceio
+                  - America/Miquelon
+                  - America/Montevideo
+                  - America/Paramaribo
+                  - America/Recife
+                  - America/Santarem
+                  - America/Sao_Paulo
+                  - Antarctica/Rothera
+                  - Etc/GMT+3
+                  - America/Noronha
+                  - Atlantic/South_Georgia
+                  - Etc/GMT+2
+                  - America/Scoresbysund
+                  - Atlantic/Azores
+                  - Atlantic/Cape_Verde
+                  - Etc/GMT+1
+                  - Africa/Abidjan
+                  - Africa/Accra
+                  - Africa/Bamako
+                  - Africa/Banjul
+                  - Africa/Bissau
+                  - Africa/Casablanca
+                  - Africa/Conakry
+                  - Africa/Dakar
+                  - Africa/El_Aaiun
+                  - Africa/Freetown
+                  - Africa/Lome
+                  - Africa/Monrovia
+                  - Africa/Nouakchott
+                  - Africa/Ouagadougou
+                  - Africa/Sao_Tome
+                  - America/Danmarkshavn
+                  - Atlantic/Canary
+                  - Atlantic/Faroe
+                  - Atlantic/Madeira
+                  - Atlantic/Reykjavik
+                  - Atlantic/St_Helena
+                  - Etc/GMT
+                  - Etc/UCT
+                  - Etc/UTC
+                  - Europe/Dublin
+                  - Europe/Lisbon
+                  - Europe/London
+                  - UTC
+                  - WET
+                  - Africa/Algiers
+                  - Africa/Bangui
+                  - Africa/Brazzaville
+                  - Africa/Ceuta
+                  - Africa/Douala
+                  - Africa/Kinshasa
+                  - Africa/Lagos
+                  - Africa/Libreville
+                  - Africa/Luanda
+                  - Africa/Malabo
+                  - Africa/Ndjamena
+                  - Africa/Niamey
+                  - Africa/Porto-Novo
+                  - Africa/Tunis
+                  - Africa/Windhoek
+                  - CET
+                  - Etc/GMT-1
+                  - Europe/Amsterdam
+                  - Europe/Andorra
+                  - Europe/Belgrade
+                  - Europe/Berlin
+                  - Europe/Brussels
+                  - Europe/Budapest
+                  - Europe/Copenhagen
+                  - Europe/Gibraltar
+                  - Europe/Luxembourg
+                  - Europe/Madrid
+                  - Europe/Malta
+                  - Europe/Monaco
+                  - Europe/Oslo
+                  - Europe/Paris
+                  - Europe/Prague
+                  - Europe/Rome
+                  - Europe/Stockholm
+                  - Europe/Tirane
+                  - Europe/Vaduz
+                  - Europe/Vienna
+                  - Europe/Warsaw
+                  - Europe/Zurich
+                  - MET
+                  - Africa/Blantyre
+                  - Africa/Bujumbura
+                  - Africa/Cairo
+                  - Africa/Gaborone
+                  - Africa/Harare
+                  - Africa/Johannesburg
+                  - Africa/Kigali
+                  - Africa/Lubumbashi
+                  - Africa/Lusaka
+                  - Africa/Maputo
+                  - Africa/Maseru
+                  - Africa/Mbabane
+                  - Africa/Tripoli
+                  - Asia/Amman
+                  - Asia/Beirut
+                  - Asia/Damascus
+                  - Asia/Gaza
+                  - Asia/Jerusalem
+                  - Asia/Nicosia
+                  - EET
+                  - Etc/GMT-2
+                  - Europe/Athens
+                  - Europe/Bucharest
+                  - Europe/Chisinau
+                  - Europe/Helsinki
+                  - Europe/Istanbul
+                  - Europe/Kaliningrad
+                  - Europe/Kiev
+                  - Europe/Minsk
+                  - Europe/Riga
+                  - Europe/Simferopol
+                  - Europe/Sofia
+                  - Europe/Tallinn
+                  - Europe/Uzhgorod
+                  - Europe/Vilnius
+                  - Europe/Zaporozhye
+                  - Africa/Addis_Ababa
+                  - Africa/Asmara
+                  - Africa/Dar_es_Salaam
+                  - Africa/Djibouti
+                  - Africa/Kampala
+                  - Africa/Khartoum
+                  - Africa/Mogadishu
+                  - Africa/Nairobi
+                  - Antarctica/Syowa
+                  - Asia/Aden
+                  - Asia/Baghdad
+                  - Asia/Bahrain
+                  - Asia/Kuwait
+                  - Asia/Qatar
+                  - Asia/Riyadh
+                  - Etc/GMT-3
+                  - Europe/Moscow
+                  - Europe/Samara
+                  - Europe/Volgograd
+                  - Indian/Antananarivo
+                  - Indian/Comoro
+                  - Indian/Mayotte
+                  - Asia/Tehran
+                  - Asia/Baku
+                  - Asia/Dubai
+                  - Asia/Muscat
+                  - Asia/Tbilisi
+                  - Asia/Yerevan
+                  - Etc/GMT-4
+                  - Indian/Mahe
+                  - Indian/Mauritius
+                  - Indian/Reunion
+                  - Asia/Kabul
+                  - Antarctica/Mawson
+                  - Asia/Aqtau
+                  - Asia/Aqtobe
+                  - Asia/Ashgabat
+                  - Asia/Dushanbe
+                  - Asia/Karachi
+                  - Asia/Oral
+                  - Asia/Samarkand
+                  - Asia/Tashkent
+                  - Asia/Yekaterinburg
+                  - Etc/GMT-5
+                  - Indian/Kerguelen
+                  - Indian/Maldives
+                  - Asia/Colombo
+                  - Asia/Kolkata
+                  - Asia/Kathmandu
+                  - Antarctica/Vostok
+                  - Asia/Almaty
+                  - Asia/Bishkek
+                  - Asia/Dhaka
+                  - Asia/Novokuznetsk
+                  - Asia/Novosibirsk
+                  - Asia/Omsk
+                  - Asia/Qyzylorda
+                  - Asia/Thimphu
+                  - Etc/GMT-6
+                  - Indian/Chagos
+                  - Asia/Rangoon
+                  - Indian/Cocos
+                  - Antarctica/Davis
+                  - Asia/Bangkok
+                  - Asia/Ho_Chi_Minh
+                  - Asia/Hovd
+                  - Asia/Jakarta
+                  - Asia/Krasnoyarsk
+                  - Asia/Phnom_Penh
+                  - Asia/Pontianak
+                  - Asia/Vientiane
+                  - Etc/GMT-7
+                  - Indian/Christmas
+                  - Antarctica/Casey
+                  - Asia/Brunei
+                  - Asia/Choibalsan
+                  - Asia/Chongqing
+                  - Asia/Harbin
+                  - Asia/Hong_Kong
+                  - Asia/Irkutsk
+                  - Asia/Kashgar
+                  - Asia/Kuala_Lumpur
+                  - Asia/Kuching
+                  - Asia/Macau
+                  - Asia/Makassar
+                  - Asia/Manila
+                  - Asia/Shanghai
+                  - Asia/Singapore
+                  - Asia/Taipei
+                  - Asia/Ulaanbaatar
+                  - Asia/Urumqi
+                  - Australia/Perth
+                  - Etc/GMT-8
+                  - Australia/Eucla
+                  - Asia/Dili
+                  - Asia/Jayapura
+                  - Asia/Pyongyang
+                  - Asia/Seoul
+                  - Asia/Tokyo
+                  - Asia/Yakutsk
+                  - Etc/GMT-9
+                  - Pacific/Palau
+                  - Australia/Adelaide
+                  - Australia/Broken_Hill
+                  - Australia/Darwin
+                  - Antarctica/DumontDUrville
+                  - Asia/Sakhalin
+                  - Asia/Vladivostok
+                  - Australia/Brisbane
+                  - Australia/Currie
+                  - Australia/Hobart
+                  - Australia/Lindeman
+                  - Australia/Melbourne
+                  - Australia/Sydney
+                  - Etc/GMT-10
+                  - Pacific/Chuuk
+                  - Pacific/Guam
+                  - Pacific/Port_Moresby
+                  - Pacific/Saipan
+                  - Australia/Lord_Howe
+                  - Antarctica/Macquarie
+                  - Asia/Anadyr
+                  - Asia/Kamchatka
+                  - Asia/Magadan
+                  - Etc/GMT-11
+                  - Pacific/Efate
+                  - Pacific/Guadalcanal
+                  - Pacific/Kosrae
+                  - Pacific/Noumea
+                  - Pacific/Pohnpei
+                  - Pacific/Norfolk
+                  - Antarctica/McMurdo
+                  - Etc/GMT-12
+                  - Pacific/Auckland
+                  - Pacific/Fiji
+                  - Pacific/Funafuti
+                  - Pacific/Kwajalein
+                  - Pacific/Majuro
+                  - Pacific/Nauru
+                  - Pacific/Tarawa
+                  - Pacific/Wake
+                  - Pacific/Wallis
+                  - Pacific/Chatham
+                  - Etc/GMT-13
+                  - Pacific/Enderbury
+                  - Pacific/Tongatapu
+                  - Etc/GMT-14
+                  - Pacific/Kiritimati
+                example: timezoneId
+      description: Set a new timezone
+      required: true
+    NewLanguage:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newLanguage:
+                type: string
+                enum: ['english', 'french']
+        description: Set a new language
+        required: true
+    NewRole:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newRole:
+                type: string
+                enum: ['System Admin', 'Trainer', 'Trainer Admin']
+        description: Set a new language
+        required: true
+    NewCommunity:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              externalId:
+                type: string
+                example: CommunityExternalID
+      description: Set a new community
+      required: true
+    DeleteConnection:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              valueExternalIdToDelete:
+                type: string
+                example: myDropDownValueExternalId
+    NewConnections:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newValueExternalIds:
+                type: array
+                items:
+                  type: string
+                  example: connectionValueExternalID
+      description: Set a new community
+      required: true
+    NewValues:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newValues:
+                type: array
+                items:
+                  type: string
+                  example: connectionValue
+        description: Set a new free text value
+        required: true
+    NewManagers:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              newManagerExternalIds:
+                type: array
+                items:
+                  type: string
+                  example: managerExternalId
+      description: List of Manager ExternalIds, omit this array to remove all managers
+    NewManagerExternalIds:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: array
+              items: string, array
+              example: [userExternalId, [managerExternalIds]]
+      description: List of Users and List of Manager ExternalIds, omit the Manager ExternalIds to remove all managers
+    ConnectionSingle:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Connection'
+      description: A Connection Object
+      required: true
+    InstanceImport:
+      content:
+        multipart/form-data:
+          schema:
+            type: string
+            format: binary
+            example: '"example_element","example instance","trainer_one|trainer_two","2020-01-31","2020-01-31","true","true","true","1","1","true","Australia/Sydney"'
+      description:  Use a file to import Event Instances, download example <a href="/file/instance/template">here</a><br />
+                    <p>Timezones:&nbsp;<select><option>Africa/Abidjan</option><option>Africa/Accra</option><option>Africa/Addis_Ababa</option><option>Africa/Algiers</option><option>Africa/Asmara</option><option>Africa/Bamako</option><option>Africa/Bangui</option><option>Africa/Banjul</option><option>Africa/Bissau</option><option>Africa/Blantyre</option><option>Africa/Brazzaville</option><option>Africa/Bujumbura</option><option>Africa/Cairo</option><option>Africa/Casablanca</option><option>Africa/Ceuta</option><option>Africa/Conakry</option><option>Africa/Dakar</option><option>Africa/Dar_es_Salaam</option><option>Africa/Djibouti</option><option>Africa/Douala</option><option>Africa/El_Aaiun</option><option>Africa/Freetown</option><option>Africa/Gaborone</option><option>Africa/Harare</option><option>Africa/Johannesburg</option><option>Africa/Kampala</option><option>Africa/Khartoum</option><option>Africa/Kigali</option><option>Africa/Kinshasa</option><option>Africa/Lagos</option><option>Africa/Libreville</option><option>Africa/Lome</option><option>Africa/Luanda</option><option>Africa/Lubumbashi</option><option>Africa/Lusaka</option><option>Africa/Malabo</option><option>Africa/Maputo</option><option>Africa/Maseru</option><option>Africa/Mbabane</option><option>Africa/Mogadishu</option><option>Africa/Monrovia</option><option>Africa/Nairobi</option><option>Africa/Ndjamena</option><option>Africa/Niamey</option><option>Africa/Nouakchott</option><option>Africa/Ouagadougou</option><option>Africa/Porto-Novo</option><option>Africa/Sao_Tome</option><option>Africa/Tripoli</option><option>Africa/Tunis</option><option>Africa/Windhoek</option><option>America/Adak</option><option>America/Anchorage</option><option>America/Anguilla</option><option>America/Antigua</option><option>America/Araguaina</option><option>America/Argentina/Buenos_Aires</option><option>America/Argentina/Catamarca</option><option>America/Argentina/Cordoba</option><option>America/Argentina/Jujuy</option><option>America/Argentina/La_Rioja</option><option>America/Argentina/Mendoza</option><option>America/Argentina/Rio_Gallegos</option><option>America/Argentina/Salta</option><option>America/Argentina/San_Juan</option><option>America/Argentina/San_Luis</option><option>America/Argentina/Tucuman</option><option>America/Argentina/Ushuaia</option><option>America/Aruba</option><option>America/Asuncion</option><option>America/Atikokan</option><option>America/Bahia</option><option>America/Bahia_Banderas</option><option>America/Barbados</option><option>America/Belem</option><option>America/Belize</option><option>America/Blanc-Sablon</option><option>America/Boa_Vista</option><option>America/Bogota</option><option>America/Boise</option><option>America/Cambridge_Bay</option><option>America/Campo_Grande</option><option>America/Cancun</option><option>America/Caracas</option><option>America/Cayenne</option><option>America/Cayman</option><option>America/Chicago</option><option>America/Chihuahua</option><option>America/Costa_Rica</option><option>America/Cuiaba</option><option>America/Curacao</option><option>America/Danmarkshavn</option><option>America/Dawson</option><option>America/Dawson_Creek</option><option>America/Denver</option><option>America/Detroit</option><option>America/Dominica</option><option>America/Edmonton</option><option>America/Eirunepe</option><option>America/El_Salvador</option><option>America/Fortaleza</option><option>America/Glace_Bay</option><option>America/Godthab</option><option>America/Goose_Bay</option><option>America/Grand_Turk</option><option>America/Grenada</option><option>America/Guadeloupe</option><option>America/Guatemala</option><option>America/Guayaquil</option><option>America/Guyana</option><option>America/Halifax</option><option>America/Havana</option><option>America/Hermosillo</option><option>America/Indiana/Indianapolis</option><option>America/Indiana/Knox</option><option>America/Indiana/Marengo</option><option>America/Indiana/Petersburg</option><option>America/Indiana/Tell_City</option><option>America/Indiana/Vevay</option><option>America/Indiana/Vincennes</option><option>America/Indiana/Winamac</option><option>America/Inuvik</option><option>America/Iqaluit</option><option>America/Jamaica</option><option>America/Juneau</option><option>America/Kentucky/Louisville</option><option>America/Kentucky/Monticello</option><option>America/La_Paz</option><option>America/Lima</option><option>America/Los_Angeles</option><option>America/Maceio</option><option>America/Managua</option><option>America/Manaus</option><option>America/Martinique</option><option>America/Matamoros</option><option>America/Mazatlan</option><option>America/Menominee</option><option>America/Merida</option><option>America/Mexico_City</option><option>America/Miquelon</option><option>America/Moncton</option><option>America/Monterrey</option><option>America/Montevideo</option><option>America/Montreal</option><option>America/Montserrat</option><option>America/Nassau</option><option>America/New_York</option><option>America/Nipigon</option><option>America/Nome</option><option>America/Noronha</option><option>America/North_Dakota/Center</option><option>America/North_Dakota/New_Salem</option><option>America/Ojinaga</option><option>America/Panama</option><option>America/Pangnirtung</option><option>America/Paramaribo</option><option>America/Phoenix</option><option>America/Port-au-Prince</option><option>America/Port_of_Spain</option><option>America/Porto_Velho</option><option>America/Puerto_Rico</option><option>America/Rainy_River</option><option>America/Rankin_Inlet</option><option>America/Recife</option><option>America/Regina</option><option>America/Resolute</option><option>America/Rio_Branco</option><option>America/Santa_Isabel</option><option>America/Santarem</option><option>America/Santiago</option><option>America/Santo_Domingo</option><option>America/Sao_Paulo</option><option>America/Scoresbysund</option><option>America/St_Johns</option><option>America/St_Kitts</option><option>America/St_Lucia</option><option>America/St_Thomas</option><option>America/St_Vincent</option><option>America/Swift_Current</option><option>America/Tegucigalpa</option><option>America/Thule</option><option>America/Thunder_Bay</option><option>America/Tijuana</option><option>America/Toronto</option><option>America/Tortola</option><option>America/Vancouver</option><option>America/Whitehorse</option><option>America/Winnipeg</option><option>America/Yakutat</option><option>America/Yellowknife</option><option>Antarctica/Casey</option><option>Antarctica/Davis</option><option>Antarctica/DumontDUrville</option><option>Antarctica/Macquarie</option><option>Antarctica/Mawson</option><option>Antarctica/McMurdo</option><option>Antarctica/Palmer</option><option>Antarctica/Rothera</option><option>Antarctica/Syowa</option><option>Antarctica/Vostok</option><option>Asia/Aden</option><option>Asia/Almaty</option><option>Asia/Amman</option><option>Asia/Anadyr</option><option>Asia/Aqtau</option><option>Asia/Aqtobe</option><option>Asia/Ashgabat</option><option>Asia/Baghdad</option><option>Asia/Bahrain</option><option>Asia/Baku</option><option>Asia/Bangkok</option><option>Asia/Beirut</option><option>Asia/Bishkek</option><option>Asia/Brunei</option><option>Asia/Choibalsan</option><option>Asia/Chongqing</option><option>Asia/Colombo</option><option>Asia/Damascus</option><option>Asia/Dhaka</option><option>Asia/Dili</option><option>Asia/Dubai</option><option>Asia/Dushanbe</option><option>Asia/Gaza</option><option>Asia/Harbin</option><option>Asia/Ho_Chi_Minh</option><option>Asia/Hong_Kong</option><option>Asia/Hovd</option><option>Asia/Irkutsk</option><option>Asia/Jakarta</option><option>Asia/Jayapura</option><option>Asia/Jerusalem</option><option>Asia/Kabul</option><option>Asia/Kamchatka</option><option>Asia/Karachi</option><option>Asia/Kashgar</option><option>Asia/Kathmandu</option><option>Asia/Kolkata</option><option>Asia/Krasnoyarsk</option><option>Asia/Kuala_Lumpur</option><option>Asia/Kuching</option><option>Asia/Kuwait</option><option>Asia/Macau</option><option>Asia/Magadan</option><option>Asia/Makassar</option><option>Asia/Manila</option><option>Asia/Muscat</option><option>Asia/Nicosia</option><option>Asia/Novokuznetsk</option><option>Asia/Novosibirsk</option><option>Asia/Omsk</option><option>Asia/Oral</option><option>Asia/Phnom_Penh</option><option>Asia/Pontianak</option><option>Asia/Pyongyang</option><option>Asia/Qatar</option><option>Asia/Qyzylorda</option><option>Asia/Rangoon</option><option>Asia/Riyadh</option><option>Asia/Sakhalin</option><option>Asia/Samarkand</option><option>Asia/Seoul</option><option>Asia/Shanghai</option><option>Asia/Singapore</option><option>Asia/Taipei</option><option>Asia/Tashkent</option><option>Asia/Tbilisi</option><option>Asia/Tehran</option><option>Asia/Thimphu</option><option>Asia/Tokyo</option><option>Asia/Ulaanbaatar</option><option>Asia/Urumqi</option><option>Asia/Vientiane</option><option>Asia/Vladivostok</option><option>Asia/Yakutsk</option><option>Asia/Yekaterinburg</option><option>Asia/Yerevan</option><option>Atlantic/Azores</option><option>Atlantic/Bermuda</option><option>Atlantic/Canary</option><option>Atlantic/Cape_Verde</option><option>Atlantic/Faroe</option><option>Atlantic/Madeira</option><option>Atlantic/Reykjavik</option><option>Atlantic/South_Georgia</option><option>Atlantic/St_Helena</option><option>Atlantic/Stanley</option><option>Australia/Adelaide</option><option>Australia/Brisbane</option><option>Australia/Broken_Hill</option><option>Australia/Currie</option><option>Australia/Darwin</option><option>Australia/Eucla</option><option>Australia/Hobart</option><option>Australia/Lindeman</option><option>Australia/Lord_Howe</option><option>Australia/Melbourne</option><option>Australia/Perth</option><option>Australia/Sydney</option><option>CET</option><option>CST6CDT</option><option>EET</option><option>EST5EDT</option><option>EST</option><option>Etc/GMT+10</option><option>Etc/GMT+11</option><option>Etc/GMT+12</option><option>Etc/GMT+1</option><option>Etc/GMT+2</option><option>Etc/GMT+3</option><option>Etc/GMT+4</option><option>Etc/GMT+5</option><option>Etc/GMT+6</option><option>Etc/GMT+7</option><option>Etc/GMT+8</option><option>Etc/GMT+9</option><option>Etc/GMT-10</option><option>Etc/GMT-11</option><option>Etc/GMT-12</option><option>Etc/GMT-13</option><option>Etc/GMT-14</option><option>Etc/GMT-1</option><option>Etc/GMT-2</option><option>Etc/GMT-3</option><option>Etc/GMT-4</option><option>Etc/GMT-5</option><option>Etc/GMT-6</option><option>Etc/GMT-7</option><option>Etc/GMT-8</option><option>Etc/GMT-9</option><option>Etc/GMT</option><option>Etc/UCT</option><option>Etc/UTC</option><option>Europe/Amsterdam</option><option>Europe/Andorra</option><option>Europe/Athens</option><option>Europe/Belgrade</option><option>Europe/Berlin</option><option>Europe/Brussels</option><option>Europe/Bucharest</option><option>Europe/Budapest</option><option>Europe/Chisinau</option><option>Europe/Copenhagen</option><option>Europe/Dublin</option><option>Europe/Gibraltar</option><option>Europe/Helsinki</option><option>Europe/Istanbul</option><option>Europe/Kaliningrad</option><option>Europe/Kiev</option><option>Europe/Lisbon</option><option>Europe/London</option><option>Europe/Luxembourg</option><option>Europe/Madrid</option><option>Europe/Malta</option><option>Europe/Minsk</option><option>Europe/Monaco</option><option>Europe/Moscow</option><option>Europe/Oslo</option><option>Europe/Paris</option><option>Europe/Prague</option><option>Europe/Riga</option><option>Europe/Rome</option><option>Europe/Samara</option><option>Europe/Simferopol</option><option>Europe/Sofia</option><option>Europe/Stockholm</option><option>Europe/Tallinn</option><option>Europe/Tirane</option><option>Europe/Uzhgorod</option><option>Europe/Vaduz</option><option>Europe/Vienna</option><option>Europe/Vilnius</option><option>Europe/Volgograd</option><option>Europe/Warsaw</option><option>Europe/Zaporozhye</option><option>Europe/Zurich</option><option>HST</option><option>Indian/Antananarivo</option><option>Indian/Chagos</option><option>Indian/Christmas</option><option>Indian/Cocos</option><option>Indian/Comoro</option><option>Indian/Kerguelen</option><option>Indian/Mahe</option><option>Indian/Maldives</option><option>Indian/Mauritius</option><option>Indian/Mayotte</option><option>Indian/Reunion</option><option>MET</option><option>MST7MDT</option><option>MST</option><option>PST8PDT</option><option>Pacific/Apia</option><option>Pacific/Auckland</option><option>Pacific/Chatham</option><option>Pacific/Chuuk</option><option>Pacific/Easter</option><option>Pacific/Efate</option><option>Pacific/Enderbury</option><option>Pacific/Fakaofo</option><option>Pacific/Fiji</option><option>Pacific/Funafuti</option><option>Pacific/Galapagos</option><option>Pacific/Gambier</option><option>Pacific/Guadalcanal</option><option>Pacific/Guam</option><option>Pacific/Honolulu</option><option>Pacific/Johnston</option><option>Pacific/Kiritimati<option>Pacific/Kosrae</option><option>Pacific/Kwajalein</option><option>Pacific/Majuro</option><option>Pacific/Marquesas</option><option>Pacific/Midway</option><option>Pacific/Nauru</option><option>Pacific/Niue</option><option>Pacific/Norfolk</option><option>Pacific/Noumea</option><option>Pacific/Pago_Pago</option><option>Pacific/Palau</option><option>Pacific/Pitcairn</option><option>Pacific/Pohnpei</option><option>Pacific/Port_Moresby</option><option>Pacific/Rarotonga</option><option>Pacific/Saipan</option><option>Pacific/Tahiti</option><option>Pacific/Tarawa</option><option>Pacific/Tongatapu</option><option>Pacific/Wake</option><option>Pacific/Wallis</option><option>UTC</option><option>WET</option></select></p>
+    OccurrenceImport:
+      content:
+        multipart/form-data:
+          schema:
+            type: string
+            format: binary
+            example:
+      description: Use a file to import Event Instance Occurrences, download example <a href="/file/occurrence/template">here</a>
+    InstanceSingle:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Instance'
+        description: An Instance Object
+        required: true
+    OccurrenceSingle:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Occurrence'
+        description: An Occurrence Object
+        required: true
